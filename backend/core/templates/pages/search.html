@@ -1,0 +1,128 @@
+{% extends 'base.html' %} {% block main %}
+<div class="dock absolute px-4 gap-4 justify-between top-0 shadow-xs dock-lg">
+  <div class="max-w-[20px]">
+    <a href="{% url 'home' %}" class="cursor-pointer">
+      <i class="fa-solid fa-chevron-left"></i>
+    </a>
+  </div>
+  <form
+    novalidate
+    action="{% url 'search-users' %}"
+    method="get"
+    class="max-w-[500px] w-full"
+  >
+    <label
+      class="outline-none flex flex-row h-10 input border-none rounded-full bg-stone-100"
+    >
+      <i class="fa-solid fa-magnifying-glass"></i>
+      <input
+        name="username"
+        type="search"
+        required
+        placeholder="Search"
+        class="pl-2"
+      />
+    </label>
+  </form>
+</div>
+
+<main class="mt-24 px-4">
+  <ul class="space-y-6">
+    {% for u in not_added_user %}
+    <!-- User 1 - Add button -->
+    <li class="flex items-center justify-between">
+      <div class="flex flex-row gap-4">
+        <div class="avatar">
+          <div
+            class="ring-purple-600 w-10 h-10 rounded-full ring-2 ring-offset-2"
+          >
+            <img
+              src="https://i.pinimg.com/736x/4a/32/dc/4a32dc90de96d69cea42a1d6280e3598.jpg"
+              class="object-cover"
+            />
+          </div>
+        </div>
+        <div>
+          <h2>{{u.username}}</h2>
+          <p class="flex flex-row items-center gap-1">
+            <span class="text-xs text-gray-400">{{u.username}}</span>
+          </p>
+        </div>
+      </div>
+      <div>
+        <form action="{% url 'send-invite' u.id %}" method="post">
+          {% csrf_token %}
+          <button
+            type="submit"
+            class="btn btn-sm border-none outline-none rounded-full bg-yellow-300 text-gray-800"
+          >
+            <i class="fa-solid fa-user-plus"></i>
+            Add
+          </button>
+        </form>
+      </div>
+    </li>
+    {% empty %}
+    <div
+      class="flex flex-col items-center justify-center py-16 gap-2 text-center w-full"
+    >
+      <span class="text-6xl">👻</span>
+      <p class="font-semibold text-gray-700 mt-2">No users found</p>
+      <p class="text-sm text-gray-400">Try searching for a different name</p>
+    </div>
+    {% endfor %}
+
+    <!-- User 2 - Pending -->
+    {% for u in pending_friend_requests %}
+    <li class="flex items-center justify-between">
+      <div class="flex flex-row gap-4">
+        <div class="avatar">
+          <div
+            class="ring-purple-600 w-10 h-10 rounded-full ring-2 ring-offset-2"
+          >
+            <img
+              src="https://i.pinimg.com/736x/4a/32/dc/4a32dc90de96d69cea42a1d6280e3598.jpg"
+              class="object-cover"
+            />
+          </div>
+        </div>
+        <div>
+          <h2>
+            {% if u.from_user == request.user %} {{u.to_user}} {% else %}
+            {{u.from_user}} {% endif %}
+          </h2>
+          <p class="flex flex-row items-center gap-1">
+            <span class="text-xs text-gray-400"
+              >{% if u.from_user == request.user %} {{u.to_user}} {% else %}
+              {{u.from_user}} {% endif %}</span
+            >
+          </p>
+        </div>
+      </div>
+      <div>
+        {% if u.to_user == request.user %}
+        <form action="{% url 'accept-request' u.from_user.id %}" method="POST">
+          {% csrf_token %}
+          <button
+            type="submit"
+            class="btn btn-sm border-none outline-none rounded-full bg-yellow-300 text-gray-800"
+          >
+            <i class="fa-solid fa-circle-check"></i>
+            Accept
+          </button>
+        </form>
+        {% else %}
+        <button
+          class="disabled btn btn-sm border-none outline-none rounded-full bg-yellow-300 text-gray-800"
+        >
+          <i class="fa-solid fa-clock"></i>
+
+          Pending
+        </button>
+        {% endif %}
+      </div>
+    </li>
+    {% endfor %}
+  </ul>
+</main>
+{% endblock %}

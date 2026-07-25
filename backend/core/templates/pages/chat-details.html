@@ -1,0 +1,127 @@
+{% extends 'base.html' %} {% block main %}
+<div class="dock absolute gap-2 px-4 justify-start top-0 shadow-xs dock-lg">
+  <div class="max-w-[20px]">
+    <a href="{% url 'home' %}" class="cursor-pointer">
+      <i class="fa-solid fa-chevron-left"></i>
+    </a>
+  </div>
+  <div class="max-w-full w-full flex flex-row justify-start items-center gap-3">
+    <div class="avatar">
+      <div class="w-10 h-10 rounded-full">
+        <img
+          src="{% if friend.profile_image %}{{friend.profile_image.url}}{% else %}https://api.dicebear.com/7.x/thumbs/svg?seed={{friend.username}}{% endif %}"
+          class="object-cover"
+        />
+      </div>
+    </div>
+    <p>{{friend.username}}</p>
+  </div>
+  <div class="max-w-16 flex flex-row justify-between gap-4 items-center">
+    <i class="fa-solid fa-lg fa-phone"></i>
+    <i class="fa-solid fa-lg fa-video"></i>
+  </div>
+</div>
+
+<main
+  class="left-0 right-0 top-[80px] bottom-[80px] absolute overflow-y-auto scroll-smooth"
+>
+  <div class="min-h-full flex flex-col justify-end px-4">
+    {% for msg in messages %} {% if request.user == msg.sender %}
+    <div class="chat chat-end">
+      <div class="chat-header">
+        {{msg.sender}}
+        <time class="text-xs opacity-50">{{msg.created_at}}</time>
+      </div>
+      {% if msg.image %}
+      <figure height="11rem" width="9rem">
+        <img src="{{msg.image.url}}" alt="Movie" />
+      </figure>
+      {% endif %} {% if msg.text %}
+      <div class="chat-bubble">{{msg.text}}</div>
+      {% endif %}
+    </div>
+    {% endif %} {% if request.user == msg.receiver %}
+    <div class="chat chat-start">
+      <div class="chat-header">
+        {{msg.sender}}
+        <time class="text-xs opacity-50">{{msg.created_at}}</time>
+      </div>
+      {% if msg.image %}
+      <figure height="11rem" width="9rem">
+        <img src="{{msg.image.url}}" alt="Movie" />
+      </figure>
+      {% endif %} {% if msg.text %}
+      <div class="chat-bubble break-words">{{msg.text}}</div>
+      {% endif %}
+    </div>
+    {% endif %} {% endfor %}
+  </div>
+</main>
+
+<!-- Image preview card — hidden until a file is chosen -->
+<div
+  id="image-preview-card"
+  class="hidden absolute bottom-[80px] left-4 right-4 z-40"
+>
+  <div class="card card-side bg-base-100 shadow-md border border-base-200 h-20">
+    <figure class="w-20 shrink-0">
+      <img
+        id="preview-img"
+        src=""
+        alt="Preview"
+        class="w-full h-full object-cover rounded-l-2xl"
+      />
+    </figure>
+    <div class="card-body py-3 px-4 flex flex-row items-center justify-between">
+      <div class="overflow-hidden">
+        <p class="text-sm font-medium truncate">Image selected</p>
+        <p id="preview-filename" class="text-xs text-gray-400 truncate"></p>
+      </div>
+      <button
+        type="button"
+        id="cancel-image"
+        class="btn btn-sm btn-circle btn-ghost text-gray-500"
+      >
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="dock absolute gap-2 px-4 justify-start bottom-0 shadow-xs dock-lg">
+  <label
+    for="image-input"
+    class="max-w-10 rounded-full btn btn-square text-white bg-black cursor-pointer"
+  >
+    <i class="fa-solid fa-camera"></i>
+  </label>
+
+  <form
+    class="max-w-full flex flex-row gap-4"
+    action="{% url 'send-message' friend.id %}"
+    method="POST"
+    enctype="multipart/form-data"
+  >
+    {% csrf_token %}
+    <input
+      type="file"
+      id="image-input"
+      name="image"
+      accept="image/*"
+      class="hidden"
+    />
+    <input
+      type="text"
+      name="message"
+      class="rounded-full input input-border"
+      placeholder="Send chat"
+    />
+    <button
+      type="submit"
+      class="rounded-full btn btn-square text-white bg-yellow-300"
+    >
+      <i class="fa-solid fa-arrow-up"></i>
+    </button>
+  </form>
+</div>
+{% endblock %}

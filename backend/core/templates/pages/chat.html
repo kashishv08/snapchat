@@ -1,0 +1,97 @@
+{% extends 'base.html' %} {% block main %}
+<div class="dock shadow-xs px-4 absolute top-0 flex justify-between dock-lg">
+  <div class="flex flex-row gap-3 justify-start items-center">
+    <div
+      class="size-[32px] flex justify-center items-center rounded-full bg-gray-100"
+    >
+      <div class="avatar">
+        <div
+          class="ring-primary ring-offset-base-100 rounded-full ring-1 ring-offset-2"
+        >
+          <img
+            src="{% if request.user.profile_image %}{{request.user.profile_image.url}}{% else %}https://api.dicebear.com/7.x/thumbs/svg?seed={{request.user.username}}{% endif %}"
+          />
+        </div>
+      </div>
+    </div>
+    <a
+      href="{% url 'search-users' %}"
+      class="size-[32px] flex justify-center items-center rounded-full bg-gray-100 p-2"
+    >
+      <i class="fa-solid fa-magnifying-glass"></i>
+    </a>
+  </div>
+  <h1 class="text-xl font-semibold">Chat</h1>
+  <div class="flex flex-row gap-3 justify-end items-center">
+    <div
+      class="size-[32px] flex justify-center items-center rounded-full bg-gray-100 p-2"
+    >
+      <i class="fa-regular fa-bell"></i>
+    </div>
+    <div
+      class="size-[32px] bg-yellow-300 flex justify-center items-center rounded-full p-2"
+    >
+      <i class="fa-solid fa-user-plus"></i>
+    </div>
+    <div
+      class="size-[32px] flex justify-center items-center rounded-full bg-gray-100 p-2"
+    >
+      <div class="dropdown dropdown-end z-10">
+        <div tabindex="0">
+          <i class="fa-solid fa-ellipsis fa-lg"></i>
+        </div>
+        <ul
+          tabindex="-1"
+          class="menu menu-sm dropdown-content bg-base-100 rounded-box z-10 mt-3 w-52 p-2 shadow"
+        >
+          <li>
+            <a class="justify-between">
+              Profile
+              <span class="badge">{{request.user.username}}</span>
+            </a>
+          </li>
+          <li><a>Settings</a></li>
+          <li><a href="{% url 'logout' %}">Logout</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+<main class="mt-24 px-4">
+  <div class="space-y-6">
+    {% for f in friendList %}
+    <a
+      class="flex items-center justify-between"
+      href="{% url 'chat-details' f.id  %}"
+    >
+      <div class="flex flex-row gap-4">
+        <div class="avatar">
+          <div
+            class="ring-purple-600 w-10 h-10 rounded-full ring-2 ring-offset-2"
+          >
+            <img
+              src="{% if f.profile_image %}{{f.profile_image.url}}{% else %}https://api.dicebear.com/7.x/thumbs/svg?seed={{f.username}}{% endif %}"
+              class="object-cover"
+            />
+          </div>
+        </div>
+        <div>
+          <h2>{{f.username}}</h2>
+          <p class="flex flex-row items-center gap-1">
+            <i class="fa-regular fa-message fa-xs text-blue-500"></i>
+            <span class="text-xs text-gray-400">Recieved</span>
+            <span class="size-1 rounded-full bg-gray-300"> </span>
+            <span class="text-xs text-gray-400">1m</span>
+          </p>
+        </div>
+      </div>
+      <div>
+        <i class="fa-solid fa-camera fa-lg text-gray-500"></i>
+      </div>
+    </a>
+    {% empty %}
+    <p class="text-center text-gray-400 mt-10">No friends yet. Add some!</p>
+    {% endfor %}
+  </div>
+</main>
+{% include 'components/bottom-navbar.html' %} {% endblock %}

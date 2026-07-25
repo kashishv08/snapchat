@@ -1,0 +1,13 @@
+{% extends 'base.html' %} {% block main %}
+
+<form
+  action="{% if is_login %}{% url 'login' %}{% else %} {% url 'register-user' %}{% endif %}"
+  method="post"
+>
+  {% csrf_token %} {{ form }}
+  <button type="submit">
+    {% if is_login %}Login{% else %} Register{% endif %}
+  </button>
+</form>
+
+{% endblock %}
