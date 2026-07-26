@@ -1,13 +1,13 @@
 <nav class="dock absolute bg-neutral text-neutral-content">
-  <button>
+  <a href="{% url 'map' %}">
     <i class="fa-solid fa-location-dot"></i>
     <span class="dock-label">Map</span>
-  </button>
+  </a>
 
-  <button class="dock-active">
+  <a class="dock-active" href="{% url 'home' %}">
     <i class="fa-solid fa-message"></i>
     <span class="dock-label">Chat</span>
-  </button>
+  </a>
 
   <button>
     <i class="fa-solid fa-camera"></i>

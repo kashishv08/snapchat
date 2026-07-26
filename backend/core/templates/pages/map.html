@@ -1,0 +1,20 @@
+{% extends 'base.html' %} {% block main %}
+
+<style>
+  #map {
+    height: calc(100% - 64px);
+  }
+</style>
+<script>
+  const REVERSE_GEO_API_KEY = "{{ REVERSE_GEO_API_KEY }}";
+</script>
+
+<div
+  id="map-loader"
+  class="mt-[50%] bg-white flex flex-col justify-center items-center"
+>
+  <span class="loading loading-spinner loading-lg text-info"></span>
+  <p class="mt-4 text-gray-600 font-medium">Finding your location...</p>
+</div>
+<div id="map"></div>
+{% include 'components/bottom-navbar.html' %} {% endblock %}

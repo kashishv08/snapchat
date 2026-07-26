@@ -11,6 +11,7 @@ from django.contrib.auth import login, logout
 from django.db.models import Q
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib import messages
+from django.conf import settings
 
 # Create your views here.
 @login_required
@@ -134,7 +135,6 @@ def accept_request(request, id):
         messages.error(request, "No pending friend request found.")
     return redirect("home")
     
-
-
-
+def map_view(request):
+    return render(request, "pages/map.html", {"REVERSE_GEO_API_KEY" : settings.REVERSE_GEO_API_KEY})
 
