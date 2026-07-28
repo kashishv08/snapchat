@@ -1,0 +1,413 @@
+{% extends 'base.html' %} {% load static %} {% block main %}
+<!-- Standard Top Dock matches chat.html layout -->
+<div
+  class="dock shadow-xs px-4 absolute top-0 flex justify-between dock-lg z-30 bg-transparent border-none"
+>
+  <div
+    class="flex flex-row gap-3 justify-start items-center pointer-events-auto"
+  >
+    <div
+      class="size-[32px] flex justify-center items-center rounded-full bg-gray-100/60 backdrop-blur-md"
+    >
+      <div class="avatar">
+        <div
+          class="ring-primary ring-offset-base-100 rounded-full ring-1 ring-offset-1"
+        >
+          <img
+            src="{% if request.user.profile_image %}{{request.user.profile_image.url}}{% else %}https://api.dicebear.com/7.x/thumbs/svg?seed={{request.user.username}}{% endif %}"
+          />
+        </div>
+      </div>
+    </div>
+    <a
+      href="{% url 'search-users' %}"
+      class="size-[32px] flex justify-center items-center rounded-full bg-gray-100/60 backdrop-blur-md p-2 text-gray-800"
+    >
+      <i class="fa-solid fa-magnifying-glass"></i>
+    </a>
+  </div>
+  <div class="flex flex-row gap-3 justify-end items-center pointer-events-auto">
+    <div
+      class="size-[32px] flex justify-center items-center rounded-full bg-gray-100/60 backdrop-blur-md p-2 text-gray-800"
+    >
+      <i class="fa-regular fa-bell"></i>
+    </div>
+    <div
+      class="size-[32px] bg-yellow-300 flex justify-center items-center rounded-full p-2 text-gray-800"
+    >
+      <i class="fa-solid fa-user-plus"></i>
+    </div>
+    <div
+      class="size-[32px] flex justify-center items-center rounded-full bg-gray-100/60 backdrop-blur-md p-2 text-gray-800"
+    >
+      <div class="dropdown dropdown-end z-10">
+        <div tabindex="0">
+          <i class="fa-solid fa-ellipsis fa-lg"></i>
+        </div>
+        <ul
+          tabindex="-1"
+          class="menu menu-sm dropdown-content bg-base-100 rounded-box z-10 mt-3 w-52 p-2 shadow text-black"
+        >
+          <li>
+            <a class="justify-between">
+              Profile
+              <span class="badge">{{request.user.username}}</span>
+            </a>
+          </li>
+          <li><a>Settings</a></li>
+          <li><a href="{% url 'logout' %}">Logout</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div
+  class="relative w-full h-full bg-black overflow-hidden sm:rounded-lg flex flex-col justify-center items-center"
+>
+  <!-- Camera view -->
+  <video
+    id="vid"
+    class="absolute inset-0 w-full h-full object-cover z-0 hidden"
+    playsinline
+  ></video>
+
+  <!-- Captured Image Preview -->
+  <img
+    id="captured-preview"
+    class="absolute inset-0 w-full h-full object-cover z-20 hidden"
+  />
+
+  <!-- Send To Button (Hidden initially) -->
+  <div
+    id="send-to-btn-container"
+    class="absolute bottom-8 right-4 z-40 pointer-events-auto hidden"
+  >
+    <button
+      class="btn bg-[#FFFC00] hover:bg-[#F2F000] text-black border-none rounded-full pl-6 pr-4 py-3 shadow-[0_4px_12px_rgba(0,0,0,0.15)] font-bold text-lg flex items-center gap-2 transition-transform active:scale-95"
+      onclick="my_modal_3.showModal()"
+    >
+      Send To
+      <div
+        class="bg-white rounded-full w-8 h-8 flex items-center justify-center shadow-sm"
+      >
+        <i class="fa-solid fa-chevron-right text-black text-sm"></i>
+      </div>
+    </button>
+  </div>
+
+  <!-- Send To Modal -->
+  <dialog id="my_modal_3" class="modal modal-bottom sm:modal-middle">
+    <div
+      class="modal-box p-0 bg-gray-50 rounded-t-3xl sm:rounded-3xl overflow-hidden h-[56vh] max-h-[385px] max-w-[43vh] flex flex-col shadow-2xl relative"
+    >
+      <!-- Modal Header -->
+      <div
+        class="flex items-center justify-between p-4 bg-white sticky top-0 z-20 shadow-[0_1px_3px_rgba(0,0,0,0.05)]"
+      >
+        <div class="w-8"></div>
+        <!-- Spacer for centering -->
+        <h3
+          class="font-extrabold text-lg text-gray-900 text-center flex-grow tracking-wide"
+        >
+          Send To
+        </h3>
+        <form method="dialog">
+          <button
+            class="btn btn-sm btn-circle btn-ghost bg-gray-100 hover:bg-gray-200 border-none text-gray-600"
+          >
+            ✕
+          </button>
+        </form>
+      </div>
+
+      <!-- Search Bar -->
+      <div class="p-3 bg-white z-10 border-b border-gray-100">
+        <div class="relative">
+          <div
+            class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
+          >
+            <i class="fa-solid fa-magnifying-glass text-gray-400"></i>
+          </div>
+          <input
+            type="text"
+            class="input input-md w-full pl-10 bg-gray-100 text-gray-900 border-none rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FFFC00] font-medium placeholder-gray-500"
+            placeholder="Search..."
+          />
+        </div>
+      </div>
+
+      <!-- Friend List (Scrollable) -->
+      <div class="overflow-y-auto flex-grow bg-white pb-[80px] scrollbar-thin">
+        <!-- Best Friends Section -->
+        <div class="mt-2">
+          <div class="px-4 py-1.5 sticky top-0 bg-white/95 backdrop-blur z-10">
+            <h4
+              class="text-xs font-bold text-gray-500 uppercase tracking-wider"
+            >
+              Best Friends
+            </h4>
+          </div>
+          <ul class="space-y-0.5 px-2">
+            {% for friend in friends %}
+            <li
+              class="flex items-center justify-between p-2 hover:bg-gray-100 rounded-2xl transition cursor-pointer group select-none"
+              onclick="toggleSelectFriend('{{ friend.id }}', this)"
+            >
+              <div class="flex items-center gap-3">
+                <div class="avatar">
+                  <div
+                    class="w-12 h-12 rounded-full border border-gray-200 overflow-hidden"
+                  >
+                    <img
+                      src="{% if friend.profile_image %}{{friend.profile_image.url}}{% else %}https://api.dicebear.com/7.x/thumbs/svg?seed={{friend.username}}{% endif %}"
+                      class="w-full h-full object-cover"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <div class="font-semibold text-gray-900 text-[15px]">
+                    {{friend.username}}
+                  </div>
+                </div>
+              </div>
+              <div
+                class="check-indicator w-[22px] h-[22px] mr-2 rounded-full border-[2px] border-gray-300 flex items-center justify-center text-transparent group-hover:border-[#FFFC00] transition-colors"
+              >
+                <i class="fa-solid fa-check text-[10px]"></i>
+              </div>
+            </li>
+            {% empty %}
+            <p>No friends Founds!</p>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+
+      <!-- Bottom Send Action Bar (Sticky) -->
+      <div
+        class="absolute bottom-0 left-0 right-0 p-2 bg-white/90 backdrop-blur-md border-t border-gray-200 flex justify-end items-center shadow-[0_-4px_15px_rgba(0,0,0,0.05)] z-20"
+      >
+        <button
+          onclick="sendToSelectedFriends()"
+          id="send-to-final-btn"
+          disabled
+          class="w-10 h-10 bg-[#FFFC00] text-black rounded-full flex items-center justify-center shadow-lg transition-transform active:scale-95 disabled:opacity-50 disabled:active:scale-100"
+        >
+          <i
+            class="fa-solid fa-paper-plane text-lg translate-y-[1px] translate-x-[-1px]"
+          ></i>
+        </button>
+      </div>
+    </div>
+    <form method="dialog" class="modal-backdrop">
+      <button>close</button>
+    </form>
+  </dialog>
+
+  <!-- Initial Placeholder / Open Camera Overlay -->
+  <div
+    id="camera-overlay"
+    class="z-20 absolute inset-0 flex flex-col items-center justify-center cursor-pointer w-full h-full text-white bg-gray-800 transition-colors duration-300"
+  >
+    <div
+      class="w-24 h-24 rounded-full bg-gray-800 flex items-center justify-center mb-6 shadow-lg border border-gray-700"
+    >
+      <i class="fa-solid fa-camera text-4xl text-gray-300"></i>
+    </div>
+    <h2 class="text-2xl font-bold mb-2">Tap to Open</h2>
+    <p class="text-sm text-gray-400 font-medium">Allow camera access</p>
+  </div>
+
+  <!-- UI Overlay (Hidden initially) -->
+  <div
+    id="camera-ui"
+    class="absolute inset-0 z-10 hidden flex-col justify-between pointer-events-none"
+  >
+    <!-- Right side tools -->
+    <div
+      class="absolute right-4 top-24 flex flex-col space-y-4 pointer-events-auto"
+    >
+      <button
+        class="w-10 h-10 rounded-full bg-black/30 backdrop-blur-md text-white flex items-center justify-center hover:bg-black/50 transition"
+      >
+        <i class="fa-solid fa-rotate text-lg"></i>
+      </button>
+      <button
+        class="w-10 h-10 rounded-full bg-black/30 backdrop-blur-md text-white flex items-center justify-center hover:bg-black/50 transition"
+      >
+        <i class="fa-solid fa-bolt text-lg"></i>
+      </button>
+      <button
+        class="w-10 h-10 rounded-full bg-black/30 backdrop-blur-md text-white flex items-center justify-center hover:bg-black/50 transition"
+      >
+        <i class="fa-solid fa-music text-lg"></i>
+      </button>
+    </div>
+
+    <!-- Capture button (positioned above the bottom navbar) -->
+    <div class="flex flex-col items-center w-full mt-auto pb-[90px]">
+      <div class="flex justify-center items-center w-full pointer-events-auto">
+        <button
+          onclick="capture()"
+          id="capture-btn"
+          class="w-[84px] h-[84px] rounded-full border-[5px] border-white bg-transparent flex items-center justify-center group active:scale-95 transition-transform duration-200 shadow-xl"
+        >
+          <div
+            class="w-[64px] h-[64px] rounded-full bg-white/20 group-hover:bg-white/40 transition-colors duration-200"
+          ></div>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Included standard bottom navbar -->
+<div id="bottom-nav-container" class="z-30 w-full absolute bottom-0 left-0">
+  {% include 'components/bottom-navbar.html' %}
+</div>
+
+<script>
+  function capture() {
+    const video = document.getElementById("vid");
+    if (!video || video.videoWidth === 0) {
+      console.error("Video stream is not active yet.");
+      return;
+    }
+
+    const canvas = document.createElement("canvas");
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+
+    const ctx = canvas.getContext("2d");
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    const imgString = canvas.toDataURL("image/png");
+    console.log("Captured native image length:", imgString.length);
+
+    const preview = document.getElementById("captured-preview");
+    preview.src = imgString;
+    preview.classList.remove("hidden");
+
+    video.classList.add("hidden");
+    document.getElementById("camera-ui").classList.add("hidden");
+    document.getElementById("bottom-nav-container").classList.add("hidden");
+    document.getElementById("send-to-btn-container").classList.remove("hidden");
+  }
+</script>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const overlay = document.getElementById("camera-overlay");
+    const video = document.getElementById("vid");
+    const cameraUi = document.getElementById("camera-ui");
+    const mediaDevices = navigator.mediaDevices;
+
+    video.muted = true;
+
+    overlay.addEventListener("click", () => {
+      if (!mediaDevices || !mediaDevices.getUserMedia) {
+        alert("Camera API is not supported in your browser.");
+        return;
+      }
+
+      mediaDevices
+        .getUserMedia({
+          video: { facingMode: "user" },
+          audio: true,
+        })
+        .then((stream) => {
+          video.srcObject = stream;
+
+          video.addEventListener("loadedmetadata", () => {
+            video.play();
+
+            overlay.classList.add("hidden");
+            video.classList.remove("hidden");
+            cameraUi.classList.remove("hidden");
+            cameraUi.classList.add("flex");
+          });
+        })
+        .catch((err) => {
+          console.error("Camera access denied or failed", err);
+          alert(
+            "Could not access camera. Please ensure permissions are granted.",
+          );
+        });
+    });
+  });
+</script>
+<script>
+  let selectedFriends = new Set();
+
+  function toggleSelectFriend(friendId, element) {
+    const indicator = element.querySelector(".check-indicator");
+    const btn = document.getElementById("send-to-final-btn");
+
+    if (selectedFriends.has(friendId)) {
+      selectedFriends.delete(friendId);
+      indicator.classList.remove(
+        "bg-[#FFFC00]",
+        "border-[#FFFC00]",
+        "text-black",
+      );
+      indicator.classList.add(
+        "border-gray-300",
+        "text-transparent",
+        "group-hover:border-[#FFFC00]",
+      );
+    } else {
+      selectedFriends.add(friendId);
+      indicator.classList.add("bg-[#FFFC00]", "border-[#FFFC00]", "text-black");
+      indicator.classList.remove(
+        "border-gray-300",
+        "text-transparent",
+        "group-hover:border-[#FFFC00]",
+      );
+    }
+
+    if (selectedFriends.size > 0) {
+      btn.removeAttribute("disabled");
+    } else {
+      btn.setAttribute("disabled", "true");
+    }
+  }
+
+  function sendToSelectedFriends() {
+    if (selectedFriends.size === 0) return;
+
+    document
+      .getElementById("send-to-final-btn")
+      .setAttribute("disabled", "true");
+
+    const preview = document.getElementById("captured-preview");
+    const imgString = preview.src;
+
+    const formData = new FormData();
+    formData.append("image_data", imgString);
+    formData.append("friend_ids", JSON.stringify(Array.from(selectedFriends)));
+
+    fetch('{% url "send-snap-multiple" %}', {
+      method: "POST",
+      body: formData,
+    })
+      .then((response) => {
+        if (response.ok) {
+          window.location.href = "{% url 'home' %}";
+        } else {
+          alert("Failed to send snap!");
+          document
+            .getElementById("send-to-final-btn")
+            .removeAttribute("disabled");
+        }
+      })
+      .catch((error) => {
+        console.error(error);
+        alert("Error sending snap!");
+        document
+          .getElementById("send-to-final-btn")
+          .removeAttribute("disabled");
+      });
+  }
+</script>
+{% endblock %}

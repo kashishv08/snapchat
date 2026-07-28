@@ -1,4 +1,4 @@
-{% extends 'base.html' %} {% block main %}
+{% extends 'base.html' %} {% block main %} {{auth.User}}
 <div class="dock shadow-xs px-4 absolute top-0 flex justify-between dock-lg">
   <div class="flex flex-row gap-3 justify-start items-center">
     <div
@@ -59,7 +59,7 @@
 </div>
 <main class="mt-24 px-4">
   <div class="space-y-6">
-    {% for f in friendList %}
+    {% for f, chat, last_message in friendList %}
     <a
       class="flex items-center justify-between"
       href="{% url 'chat-details' f.id  %}"
@@ -79,9 +79,12 @@
           <h2>{{f.username}}</h2>
           <p class="flex flex-row items-center gap-1">
             <i class="fa-regular fa-message fa-xs text-blue-500"></i>
-            <span class="text-xs text-gray-400">Recieved</span>
+            <span class="text-xs text-gray-400">{{last_message}}</span>
             <span class="size-1 rounded-full bg-gray-300"> </span>
             <span class="text-xs text-gray-400">1m</span>
+            {% if chat.streak > 0 %}
+            <span class="text-xs text-gray-400">{{chat.streak}}🔥</span>
+            {% endif %}
           </p>
         </div>
       </div>

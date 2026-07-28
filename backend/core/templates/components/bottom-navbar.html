@@ -1,18 +1,27 @@
 <nav class="dock absolute bg-neutral text-neutral-content">
-  <a href="{% url 'map' %}">
+  <a
+    href="{% url 'map' %}"
+    class="{% if request.path == '/map' %}dock-active{% endif %}"
+  >
     <i class="fa-solid fa-location-dot"></i>
     <span class="dock-label">Map</span>
   </a>
 
-  <a class="dock-active" href="{% url 'home' %}">
+  <a
+    class="{% if request.path == '/' %}dock-active{% endif %}"
+    href="{% url 'home' %}"
+  >
     <i class="fa-solid fa-message"></i>
     <span class="dock-label">Chat</span>
   </a>
 
-  <button>
+  <a
+    href="{% url 'camera' %}"
+    class="{% if request.path == '/camera' %}dock-active{% endif %}"
+  >
     <i class="fa-solid fa-camera"></i>
     <span class="dock-label">Camera</span>
-  </button>
+  </a>
   <button>
     <i class="fa-solid fa-user-group"></i>
     <span class="dock-label">Stories</span>

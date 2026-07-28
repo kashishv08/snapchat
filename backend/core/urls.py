@@ -12,7 +12,9 @@ urlpatterns = [
     path("logout/", views.logout_view, name="logout"),
     path("send-invite/<int:id>", views.send_invite, name='send-invite'),
     path("send-message/<int:id>", views.send_message, name="send-message"),
+    path("send-snap-multiple", views.send_snap_multiple, name="send-snap-multiple"),
     path("accept-request/<int:id>", views.accept_request, name='accept-request'),
-    path("map", views.map_view, name="map")
+    path("map", views.map_view, name="map"),
+    path("camera", views.camera, name="camera")
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
