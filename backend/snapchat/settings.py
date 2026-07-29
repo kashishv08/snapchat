@@ -37,6 +37,8 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    "daphne",
+    "channels",
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -74,6 +76,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'snapchat.wsgi.application'
+ASGI_APPLICATION = "snapchat.asgi.application"
 
 
 # Database
@@ -131,3 +134,9 @@ MEDIA_URL = 'media/'
 MEDIA_ROOT = BASE_DIR / MEDIA_URL
 
 AUTH_USER_MODEL = 'core.User'
+
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer",
+    }
+}

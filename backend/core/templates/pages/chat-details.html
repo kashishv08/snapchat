@@ -1,4 +1,4 @@
-{% extends 'base.html' %} {% block main %}
+{% extends 'base.html' %} {% load static %} {% block main %}
 <div class="dock absolute gap-2 px-4 justify-start top-0 shadow-xs dock-lg">
   <div class="max-w-[20px]">
     <a href="{% url 'home' %}" class="cursor-pointer">
@@ -23,38 +23,63 @@
 </div>
 
 <main
-  class="left-0 right-0 top-[80px] bottom-[80px] absolute overflow-y-auto scroll-smooth"
+  class="left-0 right-0 top-[80px] bottom-[80px] absolute overflow-y-auto scroll-smooth main-chat-container"
 >
-  <div class="min-h-full flex flex-col justify-end px-4">
-    {% for msg in messages %} {% if request.user == msg.sender %}
-    <div class="chat chat-end">
+  <div class="min-h-full flex flex-col justify-end px-4 chat-box">
+    {% for msg in messages %} {% if msg.is_system %}
+    <div class="screenshot-notification">
+      <div class="screenshot-pill">
+        <span class="ss-icon">📸</span>
+        <span class="ss-text">
+          <span class="ss-name">
+            {% if request.user == msg.sender %} You {% else %}
+            {{msg.sender.username}} {% endif %}
+          </span>
+          took a screenshot!
+        </span>
+      </div>
+    </div>
+    {% else %} {% if request.user == msg.sender %}
+    <div class="chat chat-end msg-sent">
       <div class="chat-header">
         {{msg.sender}}
-        <time class="text-xs opacity-50">{{msg.created_at}}</time>
+        <time class="text-xs opacity-50">{{msg.created_at|date:"h:i A"}}</time>
       </div>
-      {% if msg.image %}
-      <figure height="11rem" width="9rem">
-        <img src="{{msg.image.url}}" alt="Movie" />
-      </figure>
-      {% endif %} {% if msg.text %}
-      <div class="chat-bubble">{{msg.text}}</div>
-      {% endif %}
+      <div
+        class="chat-bubble flex flex-col gap-2 {% if not msg.text %}p-1 bg-transparent shadow-none{% endif %}"
+      >
+        {% if msg.image %}
+        <img
+          src="{{msg.image.url}}"
+          alt="Snap"
+          class="rounded-xl w-full max-w-[220px]"
+        />
+        {% endif %} {% if msg.text %}
+        <span>{{msg.text}}</span>
+        {% endif %}
+      </div>
     </div>
     {% endif %} {% if request.user == msg.receiver %}
-    <div class="chat chat-start">
+    <div class="chat chat-start msg-received">
       <div class="chat-header">
         {{msg.sender}}
-        <time class="text-xs opacity-50">{{msg.created_at}}</time>
+        <time class="text-xs opacity-50">{{msg.created_at|date:"h:i A"}}</time>
       </div>
-      {% if msg.image %}
-      <figure height="11rem" width="9rem">
-        <img src="{{msg.image.url}}" alt="Movie" />
-      </figure>
-      {% endif %} {% if msg.text %}
-      <div class="chat-bubble break-words">{{msg.text}}</div>
-      {% endif %}
+      <div
+        class="chat-bubble flex flex-col gap-2 {% if not msg.text %}p-1 bg-transparent shadow-none border-none{% endif %}"
+      >
+        {% if msg.image %}
+        <img
+          src="{{msg.image.url}}"
+          alt="Snap"
+          class="rounded-xl w-full max-w-[220px]"
+        />
+        {% endif %} {% if msg.text %}
+        <span>{{msg.text}}</span>
+        {% endif %}
+      </div>
     </div>
-    {% endif %} {% endfor %}
+    {% endif %} {% endif %} {% endfor %}
   </div>
 </main>
 
@@ -101,6 +126,7 @@
     action="{% url 'send-message' friend.id %}"
     method="POST"
     enctype="multipart/form-data"
+    onsubmit="return false;"
   >
     {% csrf_token %}
     <input
@@ -113,15 +139,198 @@
     <input
       type="text"
       name="message"
+      id="message-input"
       class="rounded-full input input-border"
       placeholder="Send chat"
     />
     <button
-      type="submit"
+      type="button"
+      id="send-btn"
       class="rounded-full btn btn-square text-white bg-yellow-300"
     >
       <i class="fa-solid fa-arrow-up"></i>
     </button>
   </form>
 </div>
+
+<script src="{% static 'index.js' %}"></script>
+<link rel="stylesheet" href="{% static 'index.css' %}" />
+
+<script>
+  (function () {
+    const chatId = "{{ chat.id }}";
+    const currentUserId = {{ request.user.id }};
+    const currentUsername = "{{ request.user.username }}";
+
+    let selectedImageBase64 = null;
+    let typingTimeout = null;
+
+    function scrollToBottom() {
+      const chatContainer = document.querySelector(".main-chat-container");
+      if (chatContainer) chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+
+    scrollToBottom();
+
+    const socket = new WebSocket(
+      `ws://${window.location.host}/ws/chat/${chatId}/`
+    );
+
+    socket.onopen = function (e) {
+      console.log("websocket connected");
+    };
+
+    socket.onclose = function (e) {
+      console.log("disconnected", e);
+    };
+
+    socket.onmessage = function (e) {
+      const data = JSON.parse(e.data);
+      console.log("received:", data);
+      if (data.type == "message") {
+        appendMessages(data);
+      }
+      if (data.type == "typing"){
+        showTyper(data);
+      }
+
+    if (data.type == "screenshot") {
+      const chatBox = document.querySelector(".chat-box");
+      const div = document.createElement("div");
+      div.className = "screenshot-notification";
+
+      const isMe = data.sender === currentUsername;
+      const displayName = isMe ? "You" : data.sender;
+
+      div.innerHTML = `
+        <div class="screenshot-pill">
+          <span class="ss-icon">📸</span>
+          <span class="ss-text">
+            <span class="ss-name">${displayName}</span> took a screenshot!
+          </span>
+        </div>
+      `;
+
+      const typingIndicator = document.getElementById("typing-indicator");
+      if (typingIndicator && typingIndicator.style.display !== "none") {
+        chatBox.insertBefore(div, typingIndicator);
+      } else {
+        chatBox.appendChild(div);
+      }
+      scrollToBottom();
+    }
+    };
+
+    function appendMessages(data) {
+      const chatBox = document.querySelector(".chat-box");
+      const my_msg = data.sender_id == currentUserId;
+      const div = document.createElement("div");
+      div.className = my_msg ? "chat chat-end" : "chat chat-start";
+
+      const imageHtml = data.image
+        ? `<img src="${data.image}" class="rounded-xl w-full max-w-[220px]" />`
+        : "";
+
+      // Format time to e.g. "10:30 PM"
+      const date = new Date(data.created_at);
+      const timeStr = isNaN(date) ? "" : date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+      const bubbleExtraClasses = !data.message ? "p-1 bg-transparent shadow-none border-none" : "";
+
+      div.innerHTML = `
+        <div class="chat-header">
+          ${data.sender_username}
+          <time class="text-xs opacity-50">${timeStr}</time>
+        </div>
+        <div class="chat-bubble flex flex-col gap-2 ${bubbleExtraClasses}">
+          ${imageHtml}
+          ${data.message ? `<span>${data.message}</span>` : ""}
+        </div>
+      `;
+
+      const typingIndicator = document.getElementById("typing-indicator");
+      if (typingIndicator && typingIndicator.style.display !== "none") {
+        chatBox.insertBefore(div, typingIndicator);
+      } else {
+        chatBox.appendChild(div);
+      }
+      scrollToBottom();
+    }
+
+    function showTyper(data) {
+      let indicator = document.getElementById("typing-indicator");
+
+      if (!indicator) {
+        indicator = document.createElement("div");
+        indicator.id = "typing-indicator";
+        indicator.className = "chat chat-start";
+      }
+
+      indicator.innerHTML = `
+        <div class="chat-bubble typing-bubble">
+          <span class="typing-name">${data.typer} is typing</span>
+          <span class="typing-dots">
+            <span class="dot"></span>
+            <span class="dot"></span>
+            <span class="dot"></span>
+          </span>
+        </div>
+      `;
+
+      document.querySelector(".chat-box").appendChild(indicator);
+
+      indicator.style.display = "block";
+      scrollToBottom();
+
+      clearTimeout(typingTimeout);
+      typingTimeout = setTimeout(() => {
+        indicator.style.display = "none";
+      }, 2500);
+    }
+
+    document.getElementById("send-btn").addEventListener("click", function () {
+      const text = document.getElementById("message-input").value.trim();
+
+      if (!text && !selectedImageBase64) return;
+      if (socket.readyState != WebSocket.OPEN) return;
+
+      socket.send(JSON.stringify({
+        type: "message",
+        message: text,
+        image: selectedImageBase64,
+      }));
+
+      document.getElementById("message-input").value = "";
+      document.querySelector("#cancel-image").click();
+      selectedImageBase64 = null;
+    });
+
+    document.getElementById("message-input").addEventListener("input", function(e){
+      socket.send(JSON.stringify({
+        type:"typing",
+        typer:"{{request.user.username}}"
+      }));
+    });
+
+    document.getElementById("image-input").addEventListener("change", function (e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function (event) {
+        selectedImageBase64 = event.target.result;
+        console.log("image ready as base64");
+      };
+      reader.readAsDataURL(file);
+    });
+
+    document.addEventListener("keyup", function(e){
+      if(e.key == "PrintScreen"){
+        socket.send(JSON.stringify({type:"screenshot",
+        sender:"{{request.user.username}}"}))
+      }
+    })
+
+  })();
+</script>
+
 {% endblock %}

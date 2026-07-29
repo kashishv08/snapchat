@@ -1,0 +1,142 @@
+/* ─────────────────────────────────────────
+   Chat Message Design (Bubbles, Images, Header)
+───────────────────────────────────────── */
+
+.chat-header {
+  font-size: 0.72rem;
+  opacity: 0.6;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin-bottom: 4px;
+  font-weight: 500;
+}
+
+.chat-header time {
+  font-size: 0.65rem;
+  opacity: 0.8;
+  font-weight: 400;
+}
+
+/* Sent bubble (right side) — Snapchat Saved Style (Blue Border) */
+.chat-end .chat-bubble {
+  background-color: #F2F3F5;
+  color: #111;
+  border-radius: 6px 14px 14px 6px;
+  border-left: 4px solid #00B6FF; /* Snapchat Chat Blue */
+  font-size: 0.95rem;
+  line-height: 1.4;
+  padding: 10px 14px;
+  max-width: 280px;
+  word-break: break-word;
+  box-shadow: none;
+}
+
+/* Received bubble (left side) — Snapchat Saved Style (Red Border) */
+.chat-start .chat-bubble {
+  background-color: #F2F3F5;
+  color: #111;
+  border-radius: 6px 14px 14px 6px;
+  border-left: 4px solid #FF2345; /* Snapchat Snap Red */
+  font-size: 0.95rem;
+  line-height: 1.4;
+  padding: 10px 14px;
+  max-width: 280px;
+  word-break: break-word;
+  box-shadow: none;
+}
+
+/* Images inside chat bubbles */
+.chat .chat-bubble img {
+  max-width: 100%;
+  border-radius: 12px;
+  display: block;
+}
+
+/* ─────────────────────────────────────────
+   Typing indicator — bouncing dots animation
+───────────────────────────────────────── */
+.typing-bubble {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 14px !important;
+  background: oklch(var(--b3)) !important;
+}
+
+.typing-name {
+  font-size: 0.7rem;
+  opacity: 0.65;
+  white-space: nowrap;
+}
+
+.typing-dots {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.5;
+  animation: typingBounce 1.2s infinite ease-in-out;
+}
+
+.dot:nth-child(1) { animation-delay: 0s; }
+.dot:nth-child(2) { animation-delay: 0.2s; }
+.dot:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes typingBounce {
+  0%, 60%, 100% {
+    transform: translateY(0);
+    opacity: 0.4;
+  }
+  30% {
+    transform: translateY(-5px);
+    opacity: 1;
+  }
+} /* <--- THIS BRACE WAS MISSING BEFORE! */
+
+/* ─────────────────────────────────────────
+   Screenshot notification — centered pill
+───────────────────────────────────────── */
+.screenshot-notification {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 16px;
+  margin: 6px 0;
+  width: 100%;
+}
+
+.screenshot-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, rgba(255, 210, 0, 0.15), rgba(255, 170, 0, 0.1));
+  border: 1px solid rgba(255, 200, 0, 0.35);
+  border-radius: 999px;
+  padding: 6px 16px;
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  opacity: 0.85;
+  backdrop-filter: blur(4px);
+}
+
+.screenshot-pill .ss-icon {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.screenshot-pill .ss-text {
+  opacity: 0.9;
+}
+
+.screenshot-pill .ss-name {
+  font-weight: 700;
+  color: oklch(0.75 0.18 85);  /* warm yellow-gold */
+}

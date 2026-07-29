@@ -67,7 +67,7 @@ def chat_details(request, id):
             msg.delete()
 
         update_streak(request.user, friend)
-        return render(request, "pages/chat-details.html", {"messages":messages, "friend": friend})
+        return render(request, "pages/chat-details.html", {"messages":messages, "friend": friend, "chat":chat})
     return redirect("home")
 
 @login_required
@@ -106,46 +106,6 @@ def send_message(request, id):
         update_streak(request.user, friend)
         return redirect("chat-details", id=friend.id)
     return redirect("home")
-
-@login_required
-@csrf_exempt
-@require_http_methods(["POST"])
-def send_snap_multiple(request):
-    friend_ids_json = request.POST.get("friend_ids")
-    image_data_url = request.POST.get("image_data")
-    
-    if not friend_ids_json or not image_data_url:
-        return redirect("home")
-        
-    try:
-        friend_ids = json.loads(friend_ids_json)
-    except Exception:
-        return redirect("home")
-        
-    if ';base64,' in image_data_url:
-        format, imgstr = image_data_url.split(';base64,') 
-        ext = format.split('/')[-1] 
-        data = ContentFile(base64.b64decode(imgstr))
-    else:
-        return redirect("home")
-    
-    for fid in friend_ids:
-        friend = get_object_or_404(get_user_model(), pk=fid)
-        if are_friends(request.user, friend):
-            chat = get_or_create_chat(request.user, friend)
-            Messages.objects.create(
-                sender=request.user,
-                receiver=friend,
-                text="",
-                image=data,
-                chat=chat
-            )
-            chat.last_message = timezone.now()
-            chat.save(update_fields=["last_message"])
-            update_streak(request.user, friend)
-            
-    return redirect("home")
-
 
 def are_friends(user1, user2):
     exist = FriendRequest.objects.filter(Q(to_user=user1, from_user=user2) | Q(to_user=user2, from_user=user1)).filter(status=FriendRequest.StatusChoice.ACCEPTED).exists()

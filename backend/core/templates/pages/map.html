@@ -1,4 +1,4 @@
-{% extends 'base.html' %} {% block main %}
+{% extends 'base.html' %} {% load static %} {% block main %}
 
 <style>
   #map {
@@ -17,4 +17,7 @@
   <p class="mt-4 text-gray-600 font-medium">Finding your location...</p>
 </div>
 <div id="map"></div>
-{% include 'components/bottom-navbar.html' %} {% endblock %}
+{% include 'components/bottom-navbar.html' %}
+
+<script type="module" src="{% static 'map.js' %}"></script>
+{% endblock %}
